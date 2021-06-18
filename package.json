@@ -1,0 +1,24 @@
+{
+  "name": "telegram-bot",
+  "version": "1.0.0",
+  "description": "Telegram Bot",
+  "main": "index.js",
+  "scripts": {
+    "test": "\"echo \\\"Error: no test specified\\\" && exit 1\"",
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [
+    "Bot"
+  ],
+  "author": "J.H",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "mongoose": "^5.12.14",
+    "node-telegram-bot-api": "^0.53.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  }
+}
