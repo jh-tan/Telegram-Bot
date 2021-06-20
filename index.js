@@ -29,7 +29,7 @@ app.use(express.json());
 
 app.get('/', (req, res) => res.send('Hello World!'));
 
-app.post(`/bot${config.API_TOKEN}`, (req, res) => {
+app.post('/' + bot.token, (req, res) => {
 	bot.processUpdate(req.body);
 	res.sendStatus(200);
 });
