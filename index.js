@@ -1,4 +1,5 @@
 const config = require('./config')
+const fastify = require('fastify')({ logger: true })
 const logger = require('./logger')
 const mongoose = require('mongoose')
 const User = require('./user')
@@ -17,7 +18,27 @@ mongoose.connect(config.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology
 let getMatch = null
 
 // Create a bot that uses 'polling' to fetch new updates
-const bot = new TelegramBot(config.API_TOKEN, {polling: true});
+const bot = new TelegramBot(config.API_TOKEN);
+
+const options = {
+  webHook: {
+    // Port to which you should bind is assigned to $PORT variable
+    // See: https://devcenter.heroku.com/articles/dynos#local-environment-variables
+    port: process.env.PORT
+    // you do NOT need to set up certificates since Heroku provides
+    // the SSL certs already (https://<app-name>.herokuapp.com)
+    // Also no need to pass IP because on Heroku you need to bind to 0.0.0.0
+  }
+};
+const url = process.env.APP_URL || 'https://UKM_Uni_Chat.herokuapp.com:443';
+
+bot.setWebHook(`${url}/bot${config.API_TOKEN}`);
+
+
+fastify.post(`/bot${TOKEN}`, (req, res) => {
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
+});
 
 bot.onText(/\/start/, async (msg) => {
 	//if db don have the chat id
