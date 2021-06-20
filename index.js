@@ -30,7 +30,7 @@ const options = {
     // Also no need to pass IP because on Heroku you need to bind to 0.0.0.0
   }
 };
-const url = process.env.APP_URL || 'https://UKM_Uni_Chat.herokuapp.com:443';
+const url = process.env.APP_URL || 'https://ukm-uni-chat.herokuapp.com:443';
 
 bot.setWebHook(`${url}/bot${config.API_TOKEN}`);
 
