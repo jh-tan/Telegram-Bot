@@ -32,9 +32,7 @@ app.post(`/bot${config.API_TOKEN}`, (req, res) => {
 	res.sendStatus(200);
 });
 
-app.listen(process.env.PORT, () => {
-  console.log(`Express server is listening on ${port}`);
-});
+app.listen(process.env.PORT);
 
 bot.onText(/\/start/, async (msg) => {
 	//if db don have the chat id
