@@ -169,12 +169,11 @@ const matchUser = async (msg) =>{
 
 bot.on('polling_error', (err) => console.log(err))
 
-
-fastify.listen(port, function (err, address) {
-  if (err) {
-    fastify.log.error(err)
-    process.exit(1)
-  }
-  fastify.log.info(`server listening on ${address}`)
+fastify.listen(port, '0.0.0.0', function (err, address) {
+	if (err) {
+	  fastify.log.error(err)
+	  process.exit(1)
+	}
+	fastify.log.info(`server listening on ${address}`)
 })
 
