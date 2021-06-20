@@ -14,6 +14,9 @@ const userSchema = new mongoose.Schema({
     },
     matchWith:{
 	    type:String,
+    },
+    nopic:{
+        type:Boolean
     }
 })
 

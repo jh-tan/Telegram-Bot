@@ -16,16 +16,14 @@ mongoose.connect(config.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology
 
 // replace the value below with the Telegram token you receive from @BotFather
 
-let getMatch = null
 let bot
 
-
 if (process.env.NODE_ENV === 'production'){
-	bot = new TelegramBot(config.API_TOKEN)
+	bot = new TelegramBot(config.API_TOKEN,{onlyFirstMatch:true})
 	bot.setWebHook(process.env.HEROKU_URL+bot.token);
 }
 else{
-	bot = new TelegramBot(config.API_TOKEN, {polling : true})
+	bot = new TelegramBot(config.API_TOKEN, {polling : true, onlyFirstMatch:true})
 }
 
 const app = express();
@@ -42,7 +40,6 @@ app.listen(process.env.PORT);
 
 bot.onText(/\/start/, async (msg) => {
 	//if db don have the chat id
-
 	const currentUser = await User.findOne({msgID:msg.chat.id})
 
 	if(currentUser && currentUser.matchWith !== ""){
@@ -62,16 +59,23 @@ bot.onText(/\/start/, async (msg) => {
 	}
 });
 
+bot.onText(/\/nopic/, async (msg)=>{
+
+	await User.findOneAndUpdate({msgID:msg.chat.id},
+				      {$set:{nopic:true }},
+				      {new:true})
+
+})
+
 bot.onText(/\/end/, async (msg) => {
-	// const user = await User.exists({msgID:msg.chat.id})
 	const currentUser = await User.findOne({msgID:msg.chat.id})
 	if(currentUser !== null && currentUser.matchWith !== ""){
 		await User.findOneAndUpdate({msgID:msg.chat.id},
-				      {$set:{matchWith: "",state:false }},
+				      {$set:{matchWith: "",state:false,nopic:false }},
 				      {new:true})
 
 		await User.findOneAndUpdate({msgID:currentUser.matchWith},
-				      {$set:{matchWith: "",state:false }},
+				      {$set:{matchWith: "",state:false,nopic:false }},
 				      {new:true})
 		
 
@@ -87,22 +91,13 @@ bot.onText(/\/stop/, async (msg) =>{
 	const currentUser = await User.findOne({msgID:msg.chat.id})
 	if(currentUser != null &&currentUser.matchWith === "" && currentUser.state){
 		await User.findOneAndUpdate({msgID:msg.chat.id},
-				      {$set:{matchWith: "",state:false }},
+				      {$set:{matchWith: "",state:false,nopic:false }},
 				      {new:true})
 		bot.sendMessage(msg.chat.id, "BOT: Stop finding friend..")
 	}
 })
 
-
-// Listen for any kind of message. There are different kinds of // messages.
-bot.on('message', async (msg) => {
-// send a message to the chat acknowledging receipt of their message
-
-	if (msg.text === '/start' || msg.text === '/end' || msg.text === '/stop'){
-		return
-	}
-
-	if(msg.text === 'Male' || msg.text === 'Female'){
+bot.onText(/Male|Female/, (msg)=>{
 
 		const user = new User ({
 			msgID:msg.chat.id,
@@ -110,22 +105,57 @@ bot.on('message', async (msg) => {
 			state:true,
 			matchWith: ""
 		})
-
 		user.save().then(result => {
 			console.log('user saved!')
 		})
+
 		bot.sendMessage(msg.chat.id, "BOT: Finding your friend....", {
 			parse_mode: 'HTML',
 			reply_markup: { remove_keyboard: true },
 		});
 		matchUser(msg)
+})
+
+// Listen for any kind of message. There are different kinds of // messages.
+bot.onText(/(.+)/, async (msg) => {
+// send a message to the chat acknowledging receipt of their message
+	const currentUser = await User.findOne({msgID:msg.chat.id})
+	if(currentUser!== null && currentUser.matchWith !== ""){
+		if(bot.sendChatAction(currentUser.matchWith,"typing"))
+			bot.sendMessage(currentUser.matchWith,"User: " + msg.text)
 	}
+});
+
+
+bot.on('photo', async (msg)=>{
 
 	const currentUser = await User.findOne({msgID:msg.chat.id})
 	if(currentUser!== null && currentUser.matchWith !== ""){
-		bot.sendMessage(currentUser.matchWith,"User: " + msg.text)
+		const currentMatch = await User.findOne({msgID:currentUser.matchWith})
+		// Example online user reverse()
+		// bot.sendPhoto(currentUser.matchWith, msg.photo.reverse()[0].file_id)
+		if(currentMatch.nopic)
+			bot.sendMessage(msg.chat.id, "BOT: The user had set to no pic mode")
+		else
+			bot.sendPhoto(currentUser.matchWith,msg.photo[0].file_id,{caption:msg.caption})
 	}
-});
+})
+
+bot.on('animation', async (msg)=>{
+	const currentUser = await User.findOne({msgID:msg.chat.id})
+	if(currentUser!== null && currentUser.matchWith !== ""){
+
+		const currentMatch = await User.findOne({msgID:currentUser.matchWith})
+		// Example online user reverse()
+		// bot.sendPhoto(currentUser.matchWith, msg.photo.reverse()[0].file_id)
+		if(currentMatch.nopic)
+			bot.sendMessage(msg.chat.id, "BOT: The user had set to no pic mode")
+		else
+			bot.sendDocument(currentUser.matchWith, msg.document.file_id);
+	}
+
+})
+
 
 const getStarted = (msg) =>{
 	bot.sendMessage(msg.chat.id,
@@ -148,7 +178,7 @@ const getStarted = (msg) =>{
 }
 
 const matchUser = async (msg) =>{
-	getMatch = await User.findOne({msgID:{$ne:msg.chat.id},state:true,matchWith:""})
+	const getMatch = await User.findOne({msgID:{$ne:msg.chat.id},state:true,matchWith:""})
 	const currentUser = await User.findOne({msgID:msg.chat.id})
 	if(getMatch !==null){
 		await User.findOneAndUpdate({msgID:getMatch.msgID},
