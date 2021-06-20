@@ -19,32 +19,20 @@ let getMatch = null
 
 // Create a bot that uses 'polling' to fetch new updates
 
-const options = {
-	webHook: {
-		// Port to which you should bind is assigned to $PORT variable
-		// See: https://devcenter.heroku.com/articles/dynos#local-environment-variables
-		port: process.env.PORT
-		// you do NOT need to set up certificates since Heroku provides
-		// the SSL certs already (https://<app-name>.herokuapp.com)
-		// Also no need to pass IP because on Heroku you need to bind to 0.0.0.0
-	}
-};
-
-const url = process.env.APP_URL || 'https://ukm-uni-chat.herokuapp.com:443';
-const port = process.env.PORT;
+// const url = process.env.APP_URL || 'https://ukm-uni-chat.herokuapp.com:443';
 const bot = new TelegramBot(config.API_TOKEN,options);
 
-bot.setWebHook(`${url}/bot${config.API_TOKEN}`);
+bot.setWebHook(process.env.HEROKU_URL+bot.token);
 
 const app = express();
 app.use(express.json());
 
 app.post(`/bot${config.API_TOKEN}`, (req, res) => {
-  bot.processUpdate(req.body);
-  res.sendStatus(200);
+	bot.processUpdate(req.body);
+	res.sendStatus(200);
 });
 
-app.listen(port, () => {
+app.listen(process.env.PORT, () => {
   console.log(`Express server is listening on ${port}`);
 });
 
