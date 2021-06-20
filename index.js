@@ -15,14 +15,18 @@ mongoose.connect(config.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology
 .catch(error=>{ logger.error('error connecting to MongoDB:', error.message) })
 
 // replace the value below with the Telegram token you receive from @BotFather
+
 let getMatch = null
+let bot
 
-// Create a bot that uses 'polling' to fetch new updates
 
-// const url = process.env.APP_URL || 'https://ukm-uni-chat.herokuapp.com:443';
-const bot = new TelegramBot(config.API_TOKEN);
-
-bot.setWebHook(process.env.HEROKU_URL+bot.token);
+if (process.env.NODE_ENV === 'production'){
+	bot = new TelegramBot(config.API_TOKEN)
+	bot.setWebHook(process.env.HEROKU_URL+bot.token);
+}
+else{
+	bot = new TelegramBot(config.API_TOKEN, {polling : true})
+}
 
 const app = express();
 app.use(express.json());
@@ -89,6 +93,7 @@ bot.onText(/\/stop/, async (msg) =>{
 	}
 })
 
+
 // Listen for any kind of message. There are different kinds of // messages.
 bot.on('message', async (msg) => {
 // send a message to the chat acknowledging receipt of their message
@@ -117,10 +122,9 @@ bot.on('message', async (msg) => {
 	}
 
 	const currentUser = await User.findOne({msgID:msg.chat.id})
-	if(currentUser!== null && currentUser.matchWith !== "")
+	if(currentUser!== null && currentUser.matchWith !== ""){
 		bot.sendMessage(currentUser.matchWith,"User: " + msg.text)
-
-
+	}
 });
 
 const getStarted = (msg) =>{
