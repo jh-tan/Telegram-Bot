@@ -103,7 +103,8 @@ bot.onText(/Male|Female/, (msg)=>{
 			msgID:msg.chat.id,
 			gender:msg.text,
 			state:true,
-			matchWith: ""
+			matchWith: "",
+			nopic:false
 		})
 		user.save().then(result => {
 			console.log('user saved!')
