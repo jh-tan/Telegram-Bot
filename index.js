@@ -20,7 +20,7 @@ let getMatch = null
 // Create a bot that uses 'polling' to fetch new updates
 
 // const url = process.env.APP_URL || 'https://ukm-uni-chat.herokuapp.com:443';
-const bot = new TelegramBot(config.API_TOKEN,options);
+const bot = new TelegramBot(config.API_TOKEN);
 
 bot.setWebHook(process.env.HEROKU_URL+bot.token);
 
