@@ -31,13 +31,15 @@ const options = {
 };
 const url = process.env.APP_URL || 'https://ukm-uni-chat.herokuapp.com:443';
 const port = process.env.PORT;
+let bot;
+
 
 
 if (process.env.NODE_ENV === 'production') {
-	const bot = new TelegramBot(config.API_TOKEN,options);
+	bot = new TelegramBot(config.API_TOKEN,options);
 	bot.setWebHook(`${url}/bot${config.API_TOKEN}`);
 } else {
-	const bot = new TelegramBot(config.API_TOKEN, { polling: true });
+	bot = new TelegramBot(config.API_TOKEN, { polling: true });
 }
 
 
