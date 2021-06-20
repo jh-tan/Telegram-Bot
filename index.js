@@ -1,5 +1,5 @@
+const express = require('express');
 const config = require('./config')
-const fastify = require('fastify')({ logger: true })
 const logger = require('./logger')
 const mongoose = require('mongoose')
 const User = require('./user')
@@ -19,33 +19,33 @@ let getMatch = null
 
 // Create a bot that uses 'polling' to fetch new updates
 
-// const options = {
-// 	webHook: {
-// 		// Port to which you should bind is assigned to $PORT variable
-// 		// See: https://devcenter.heroku.com/articles/dynos#local-environment-variables
-// 		port: process.env.PORT
-// 		// you do NOT need to set up certificates since Heroku provides
-// 		// the SSL certs already (https://<app-name>.herokuapp.com)
-// 		// Also no need to pass IP because on Heroku you need to bind to 0.0.0.0
-// 	}
-// };
+const options = {
+	webHook: {
+		// Port to which you should bind is assigned to $PORT variable
+		// See: https://devcenter.heroku.com/articles/dynos#local-environment-variables
+		port: process.env.PORT
+		// you do NOT need to set up certificates since Heroku provides
+		// the SSL certs already (https://<app-name>.herokuapp.com)
+		// Also no need to pass IP because on Heroku you need to bind to 0.0.0.0
+	}
+};
+
 const url = process.env.APP_URL || 'https://ukm-uni-chat.herokuapp.com:443';
 const port = process.env.PORT;
-let bot;
+const bot = new TelegramBot(config.API_TOKEN,options);
 
+bot.setWebHook(`${url}/bot${config.API_TOKEN}`);
 
+const app = express();
+app.use(express.json());
 
-if (process.env.NODE_ENV === 'production') {
-	bot = new TelegramBot(config.API_TOKEN);
-	bot.setWebHook(`${url}/bot${config.API_TOKEN}`);
-} else {
-	bot = new TelegramBot(config.API_TOKEN, { polling: true });
-}
-
-
-fastify.post(`/bot${config.API_TOKEN}`, (req, res) => {
+app.post(`/bot${config.API_TOKEN}`, (req, res) => {
   bot.processUpdate(req.body);
   res.sendStatus(200);
+});
+
+app.listen(port, () => {
+  console.log(`Express server is listening on ${port}`);
 });
 
 bot.onText(/\/start/, async (msg) => {
@@ -176,11 +176,4 @@ const matchUser = async (msg) =>{
 
 bot.on('polling_error', (err) => console.log(err))
 
-fastify.listen(port, '0.0.0.0', function (err, address) {
-	if (err) {
-	  fastify.log.error(err)
-	  process.exit(1)
-	}
-	fastify.log.info(`server listening on ${address}`)
-})
 
