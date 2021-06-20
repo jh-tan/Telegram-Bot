@@ -35,7 +35,7 @@ const url = process.env.APP_URL || 'https://ukm-uni-chat.herokuapp.com:443';
 bot.setWebHook(`${url}/bot${config.API_TOKEN}`);
 
 
-fastify.post(`/bot${TOKEN}`, (req, res) => {
+fastify.post(`/bot${config.API_TOKEN}`, (req, res) => {
   bot.processUpdate(req.body);
   res.sendStatus(200);
 });
