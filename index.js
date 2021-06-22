@@ -104,7 +104,7 @@ bot.onText(/\/report (.+)/, (msg, match) => {
 	const resp = match[1]; // the captured "whatever"
   
 	// send back the matched "whatever" to the chat
-	bot.sendMessage(config.CHAT_ID, resp);
+	bot.sendMessage(config.CHAT_ID, "REPORT: " +resp);
   });
 
 bot.onText(/Male|Female/, async (msg)=>{
