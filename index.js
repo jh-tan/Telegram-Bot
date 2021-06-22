@@ -117,14 +117,18 @@ bot.onText(/Male|Female/, async (msg)=>{
 			nopic:false
 		})
 
-		await user.save()
-		console.log('user saved!')
+		try{
+			await user.save()
+			console.log('user saved!')
+			bot.sendMessage(msg.chat.id, "BOT: Finding your friend....", {
+				parse_mode: 'HTML',
+				reply_markup: { remove_keyboard: true },
+			});
+			matchUser(msg)
+		}catch(err){
+			console.log('duplicated user')
+		}
 
-		bot.sendMessage(msg.chat.id, "BOT: Finding your friend....", {
-			parse_mode: 'HTML',
-			reply_markup: { remove_keyboard: true },
-		});
-		matchUser(msg)
 })
 
 // Listen for any kind of message. There are different kinds of // messages.
