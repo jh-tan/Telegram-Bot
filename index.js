@@ -53,7 +53,7 @@ bot.onText(/\/start/, async (msg) => {
 		await User.findOneAndUpdate({msgID:msg.chat.id},
 				      {$set:{matchWith: "",state:true }},
 				      {new:true})
-		bot.sendMessage(msg.chat.id, "BOT: Finding your friend...")
+		bot.sendMessage(msg.chat.id, "BOT: Finding your friend...Hold on!(Please keep your notification on)")
 		matchUser(msg)
 	}
 });
@@ -104,7 +104,8 @@ bot.onText(/\/report (.+)/, (msg, match) => {
 	const resp = match[1]; // the captured "whatever"
   
 	// send back the matched "whatever" to the chat
-	bot.sendMessage(config.CHAT_ID, "REPORT: " +resp);
+	bot.sendMessage(config.CHAT_ID, "REPORT: " +resp)
+	bot.sendMessage(msg.chat.id, "BOT: Report sent! Thank you for your feedback/Report!")
   });
 
 bot.onText(/Male|Female/, async (msg)=>{
@@ -174,11 +175,16 @@ bot.on('animation', async (msg)=>{
 const getStarted = (msg) =>{
 	bot.sendMessage(msg.chat.id,
 		`This bot was inspired by the NUS Chat Bot and is used to provide opportunities for
-		 the student to meet new friends or even find a spouse. Just type /start to start
-		 to look for a person to chat with, /end to end the chat and /stop to stop looking
-		 for a chat.
-		`
+		 the student to meet new friends or even find a spouse. 		`
 	)
+	bot.sendMessage(msg.chat.id,`
+		Usage:
+		Type /start to start to look for a person to chat with,
+		Type /stop to stop looking for a chat,
+		Type /end to end the chat, 
+		Type /nopic to prevent receive any picture,
+		Type /report [Anything you want to report/feedback] to report any bugs or give any feedback to the developer.
+	`)
 	const opts = {
 		reply_to_message_id: msg.message_id,
 		reply_markup: JSON.stringify({
