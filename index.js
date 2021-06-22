@@ -54,7 +54,6 @@ bot.onText(/\/start/, async (msg) => {
 				      {$set:{matchWith: "",state:true }},
 				      {new:true})
 		bot.sendMessage(msg.chat.id, "BOT: Finding your friend...")
-		search = true
 		matchUser(msg)
 	}
 });
@@ -97,7 +96,7 @@ bot.onText(/\/stop/, async (msg) =>{
 	}
 })
 
-bot.onText(/Male|Female/, (msg)=>{
+bot.onText(/Male|Female/, async (msg)=>{
 
 		const user = new User ({
 			msgID:msg.chat.id,
@@ -106,9 +105,9 @@ bot.onText(/Male|Female/, (msg)=>{
 			matchWith: "",
 			nopic:false
 		})
-		user.save().then(result => {
-			console.log('user saved!')
-		})
+
+		await user.save()
+		console.log('user saved!')
 
 		bot.sendMessage(msg.chat.id, "BOT: Finding your friend....", {
 			parse_mode: 'HTML',
@@ -157,7 +156,6 @@ bot.on('animation', async (msg)=>{
 
 })
 
-
 const getStarted = (msg) =>{
 	bot.sendMessage(msg.chat.id,
 		`This bot was inspired by the NUS Chat Bot and is used to provide opportunities for
@@ -179,24 +177,39 @@ const getStarted = (msg) =>{
 }
 
 const matchUser = async (msg) =>{
-	const getMatch = await User.findOne({msgID:{$ne:msg.chat.id},state:true,matchWith:""})
-	const currentUser = await User.findOne({msgID:msg.chat.id})
-	if(getMatch !==null){
-		await User.findOneAndUpdate({msgID:getMatch.msgID},
-				      {$set:{matchWith: msg.chat.id }},
-				      {new:true})
-
-		await User.findOneAndUpdate({msgID:msg.chat.id},
-				      {$set:{matchWith: getMatch.msgID }},
-				      {new:true})
-
-
-		bot.sendMessage(msg.chat.id , `BOT: Found a match! [${getMatch.gender}]`)
-		bot.sendMessage(getMatch.msgID , `BOT: Found a match! [${currentUser.gender}]`)
-
+	let match = false
+	while(!match){
+		const session = await mongoose.startSession()
+		session.startTransaction()
+		const getMatch = await User.findOne({msgID:{$ne:msg.chat.id},state:true,matchWith:""})
+		const currentUser = await User.findOne({msgID:msg.chat.id})
+		try{
+			if(getMatch !==null){
+				if((currentUser.matchWith === "" && getMatch.matchWith === "") && 
+				(currentUser.state === true && getMatch.state === true)){
+					await User.findOneAndUpdate({msgID:getMatch.msgID},
+						{$set:{matchWith: msg.chat.id,state:false }},
+						{new:true,session:session})
+						
+					await User.findOneAndUpdate({msgID:msg.chat.id},
+						{$set:{matchWith: getMatch.msgID,state:false }},
+						{new:true,session:session})
+					bot.sendMessage(msg.chat.id , `BOT: Found a match! [${getMatch.gender}]`)
+					bot.sendMessage(getMatch.msgID , `BOT: Found a match! [${currentUser.gender}]`)
+					await session.commitTransaction();
+					match = true
+					return
+				}
+				else{
+					await session.abortTransaction();
+				}
+			}
+		}catch(err){
+			await session.abortTransaction();
+		}
 	}
 }
-
+			
 bot.on('polling_error', (err) => console.log(err))
 
 
