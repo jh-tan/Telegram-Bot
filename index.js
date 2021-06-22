@@ -194,9 +194,11 @@ const matchUser = async (msg) =>{
 					await User.findOneAndUpdate({msgID:msg.chat.id},
 						{$set:{matchWith: getMatch.msgID,state:false }},
 						{new:true,session:session})
+
+					await session.commitTransaction();
+
 					bot.sendMessage(msg.chat.id , `BOT: Found a match! [${getMatch.gender}]`)
 					bot.sendMessage(getMatch.msgID , `BOT: Found a match! [${currentUser.gender}]`)
-					await session.commitTransaction();
 					match = true
 					return
 				}
