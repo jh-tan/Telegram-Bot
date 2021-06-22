@@ -96,6 +96,17 @@ bot.onText(/\/stop/, async (msg) =>{
 	}
 })
 
+bot.onText(/\/report (.+)/, (msg, match) => {
+	// 'msg' is the received Message from Telegram
+	// 'match' is the result of executing the regexp above on the text content
+	// of the message
+  
+	const resp = match[1]; // the captured "whatever"
+  
+	// send back the matched "whatever" to the chat
+	bot.sendMessage(config.CHAT_ID, resp);
+  });
+
 bot.onText(/Male|Female/, async (msg)=>{
 
 		const user = new User ({
